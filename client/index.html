@@ -3,52 +3,435 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Test Client</title>
+    <title>DevOps Calculator</title>
+    <!-- Modern Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        --card-bg: rgba(30, 41, 59, 0.7);
+        --card-border: rgba(255, 255, 255, 0.08);
+        --accent-primary: #6366f1;
+        --accent-hover: #4f46e5;
+        --accent-success: #10b981;
+        --accent-error: #ef4444;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
       body {
-        font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-        margin: 2rem;
-        color: #1f2937;
-      }
-      .card {
-        max-width: 480px;
+        font-family: 'Outfit', sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         padding: 1.5rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        overflow-x: hidden;
       }
+
+      .container {
+        width: 100%;
+        max-width: 520px;
+        position: relative;
+      }
+
+      .container::before {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: rgba(99, 102, 241, 0.15);
+        border-radius: 50%;
+        filter: blur(50px);
+        top: -50px;
+        right: -30px;
+        z-index: -1;
+      }
+
+      .container::after {
+        content: '';
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: rgba(236, 72, 153, 0.15);
+        border-radius: 50%;
+        filter: blur(50px);
+        bottom: -50px;
+        left: -30px;
+        z-index: -1;
+      }
+
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--card-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
       h1 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
       }
-      p {
-        margin: 0 0 1rem 0;
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
-      code {
-        background: #f3f4f6;
-        padding: 0.2rem 0.4rem;
-        border-radius: 6px;
+
+      .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 8px;
+        display: inline-block;
+        background: var(--text-muted);
+      }
+
+      .status-indicator.ok {
+        background: var(--accent-success);
+        box-shadow: 0 0 8px var(--accent-success);
+      }
+
+      .status-indicator.error {
+        background: var(--accent-error);
+        box-shadow: 0 0 8px var(--accent-error);
+      }
+
+      .calc-display {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .calc-route {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-family: monospace;
+        margin-bottom: 0.5rem;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .calc-expr {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+      }
+
+      .calc-result {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-main);
+        word-break: break-all;
+      }
+
+      .calculator-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .form-group-row {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .form-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      input, select {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        color: var(--text-main);
+        font-size: 1rem;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      input:focus, select:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+      }
+
+      button {
+        width: 100%;
+        background: var(--accent-primary);
+        border: none;
+        border-radius: 12px;
+        padding: 1rem;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      }
+
+      button:hover {
+        background: var(--accent-hover);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      .examples {
+        margin-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 1.25rem;
+      }
+
+      .examples h3 {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        margin-bottom: 0.75rem;
+      }
+
+      .example-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .example-link {
+        font-size: 0.8rem;
+        font-family: monospace;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+        color: #a5b4fc;
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        transition: all 0.2s;
+      }
+
+      .example-link:hover {
+        background: rgba(99, 102, 241, 0.1);
+        border-color: rgba(99, 102, 241, 0.3);
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <h1>FastAPI + Nginx</h1>
-      <p>Status: <span id="status">lade...</span></p>
-      <p>
-        Beispiel:
-        <code>/api/add?x=2&amp;y=3</code>
-      </p>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1>DevOps Calc</h1>
+          <div class="status-badge">
+            <span id="status-ind" class="status-indicator"></span>
+            <span id="status-txt">Connecting...</span>
+          </div>
+        </div>
+
+        <div class="calc-display">
+          <div class="calc-route">
+            <span id="route-path">/</span>
+            <span id="backend-call" style="color: var(--accent-primary)"></span>
+          </div>
+          <div class="calc-expr" id="expr-val">Kein Ausdruck</div>
+          <div class="calc-result" id="res-val">-</div>
+        </div>
+
+        <form class="calculator-form" id="calc-form" onsubmit="event.preventDefault(); calculate();">
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="num-x">Wert X</label>
+              <input type="number" id="num-x" placeholder="z.B. 5" required />
+            </div>
+            <div class="form-group">
+              <label for="op">Operation</label>
+              <select id="op">
+                <option value="add">+</option>
+                <option value="subtract">-</option>
+                <option value="multiply">&times;</option>
+                <option value="divide">&divide;</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="num-y">Wert Y</label>
+              <input type="number" id="num-y" placeholder="z.B. 3" required />
+            </div>
+          </div>
+          <button type="submit">Berechnen</button>
+        </form>
+
+        <div class="examples">
+          <h3>Schnellzugriff</h3>
+          <div class="example-list">
+            <a href="/add/10/5" class="example-link">/add/10/5</a>
+            <a href="/subtract/20/8" class="example-link">/subtract/20/8</a>
+            <a href="/multiply/7/6" class="example-link">/multiply/7/6</a>
+            <a href="/divide/15/3" class="example-link">/divide/15/3</a>
+          </div>
+        </div>
+      </div>
     </div>
+
     <script>
-      fetch("/api/health")
-        .then((res) => res.json())
-        .then((data) => {
-          document.getElementById("status").textContent = data.status;
-        })
-        .catch(() => {
-          document.getElementById("status").textContent = "fehler";
-        });
+      // Health check connection monitoring
+      function checkHealth() {
+        fetch("/api/health")
+          .then((res) => res.json())
+          .then((data) => {
+            const ind = document.getElementById("status-ind");
+            const txt = document.getElementById("status-txt");
+            if (data.status === "ok") {
+              ind.className = "status-indicator ok";
+              txt.textContent = "Online";
+            } else {
+              ind.className = "status-indicator error";
+              txt.textContent = "Degraded";
+            }
+          })
+          .catch(() => {
+            const ind = document.getElementById("status-ind");
+            const txt = document.getElementById("status-txt");
+            ind.className = "status-indicator error";
+            txt.textContent = "Offline";
+          });
+      }
+      checkHealth();
+      setInterval(checkHealth, 10000);
+
+      // Routing logic based on window.location.pathname
+      function route() {
+        const path = window.location.pathname;
+        document.getElementById("route-path").textContent = path;
+        
+        const parts = path.split('/').filter(Boolean);
+        if (parts.length === 3) {
+          const operation = parts[0];
+          const x = parseFloat(parts[1]);
+          const y = parseFloat(parts[2]);
+          
+          const validOps = ['add', 'subtract', 'multiply', 'divide'];
+          if (validOps.includes(operation) && !isNaN(x) && !isNaN(y)) {
+            // Update form inputs to match route
+            document.getElementById("num-x").value = x;
+            document.getElementById("num-y").value = y;
+            document.getElementById("op").value = operation;
+
+            // Perform calculation
+            let displayOp = "+";
+            if (operation === "subtract") displayOp = "-";
+            else if (operation === "multiply") displayOp = "×";
+            else if (operation === "divide") displayOp = "÷";
+
+            document.getElementById("expr-val").textContent = `${x} ${displayOp} ${y}`;
+            document.getElementById("res-val").textContent = "Berechne...";
+            
+            const apiCall = `/api/${operation}?x=${x}&y=${y}`;
+            document.getElementById("backend-call").textContent = `-> ${apiCall}`;
+
+            fetch(apiCall)
+              .then(async (res) => {
+                if (!res.ok) {
+                  const data = await res.json().catch(() => ({}));
+                  throw new Error(data.detail || "Fehler beim Berechnen");
+                }
+                return res.json();
+              })
+              .then((data) => {
+                document.getElementById("res-val").textContent = data.result;
+              })
+              .catch((err) => {
+                document.getElementById("res-val").textContent = "Error";
+                document.getElementById("expr-val").textContent = err.message;
+              });
+            return;
+          }
+        }
+        
+        // No path matched, reset display
+        document.getElementById("expr-val").textContent = "Bereit";
+        document.getElementById("res-val").textContent = "-";
+        document.getElementById("backend-call").textContent = "";
+      }
+
+      // Perform calculation triggered by form submission
+      function calculate() {
+        const x = document.getElementById("num-x").value;
+        const y = document.getElementById("num-y").value;
+        const op = document.getElementById("op").value;
+        
+        const newPath = `/${op}/${x}/${y}`;
+        history.pushState(null, '', newPath);
+        route();
+      }
+
+      // Handle popstate events when user navigates using back/forward buttons
+      window.addEventListener('popstate', route);
+
+      // Handle example link clicks dynamically to prevent page refresh
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('example-link')) {
+          e.preventDefault();
+          const href = e.target.getAttribute('href');
+          history.pushState(null, '', href);
+          route();
+        }
+      });
+
+      // Initial routing check on load
+      route();
     </script>
   </body>
 </html>

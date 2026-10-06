@@ -1,7 +1,7 @@
-from fastapi import FastAPI, Query, Request, Response
+from fastapi import FastAPI, HTTPException, Query, Request, Response
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 
-from app.core import add
+from app.core import add, divide, multiply, subtract
 
 
 app = FastAPI(title="Test API", version="0.1.0")
@@ -57,6 +57,32 @@ def add_route(
     y: int = Query(..., description="Second integer"),
 ) -> dict:
     return {"result": add(x, y)}
+
+
+@app.get("/api/subtract")
+def subtract_route(
+    x: int = Query(..., description="First integer"),
+    y: int = Query(..., description="Second integer"),
+) -> dict:
+    return {"result": subtract(x, y)}
+
+
+@app.get("/api/multiply")
+def multiply_route(
+    x: int = Query(..., description="First integer"),
+    y: int = Query(..., description="Second integer"),
+) -> dict:
+    return {"result": multiply(x, y)}
+
+
+@app.get("/api/divide")
+def divide_route(
+    x: int = Query(..., description="First integer"),
+    y: int = Query(..., description="Second integer"),
+) -> dict:
+    if y == 0:
+        raise HTTPException(status_code=400, detail="division by zero")
+    return {"result": divide(x, y)}
 
 
 @app.get("/metrics")
